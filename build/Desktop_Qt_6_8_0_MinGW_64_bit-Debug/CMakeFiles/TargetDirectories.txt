@@ -1,0 +1,9 @@
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/VideoPlayer_with_Qt.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/list_install_components.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/install.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/install/local.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/install/strip.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/VideoPlayer_with_Qt_autogen_timestamp_deps.dir
+C:/Projects/VideoPlayer_with_Qt/build/Desktop_Qt_6_8_0_MinGW_64_bit-Debug/CMakeFiles/VideoPlayer_with_Qt_autogen.dir
