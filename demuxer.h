@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMutex>
 #include <queue>
+#include <QThread>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -14,6 +15,9 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+class FrameMaker;
+class VideoConverter;
+
 class Demuxer : public QObject
 {
     Q_OBJECT
@@ -21,8 +25,7 @@ public:
     explicit Demuxer(QObject *parent = nullptr);
     void SetFormatContext(AVFormatContext* ctx, int video_index, int audio_index);
     void SetCodecContext(AVCodecContext* vctx, AVCodecContext* actx);
-    void SetMutex(QMutex* video, QMutex* audio);
-    void SetProperty(int w, int h, int bitrate);
+    void SetProperty(int w, int h, AVRational rate_info);
 signals:
 
 public slots:
@@ -32,12 +35,16 @@ private:
     void clean();
     AVFormatContext *fmtctx;
     AVCodecContext *video_ctx, *audio_ctx;
-    std::queue<AVPacket> *vq, *aq;
-    QMutex* vq_lock, *aq_lock;
+    std::queue<AVPacket *> *video_packet, *audio_packet;
+    int *video_packet_n, *audio_packet_n;
+    QMutex* video_packet_mutex, *audio_packet_mutex;
     int vidx, aidx;
     int need_reset;
     int width, height;
-    int delay;
+    AVRational rate;
+    QThread *frameMaker_thread, *videoConverter_thread, *imageMaker_thread;
+    VideoConverter *videoConverter;
+    FrameMaker *frameMaker;
 };
 
 #endif // DEMUXER_H

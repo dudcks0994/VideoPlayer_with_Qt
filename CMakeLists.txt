@@ -25,6 +25,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         videoworker.h videoworker.cpp
         demuxer.h demuxer.cpp
+        framemaker.h framemaker.cpp
+        videoconverter.h videoconverter.cpp
+        videorenderer.h videorenderer.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET VideoPlayer_with_Qt APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

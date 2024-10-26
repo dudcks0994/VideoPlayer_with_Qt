@@ -13,6 +13,7 @@
 #include <QLabel>
 #include <QSlider>
 
+class Demuxer;
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -38,7 +39,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    int init_video();
+    int init_video(Demuxer *demuxer);
     // int update_image();
     int width, height;
 
@@ -55,18 +56,10 @@ public slots:
 private:
 
     Ui::MainWindow *ui;
-    SwsContext* scale_context;
     QImage image;
-    int vidx, aidx;
-    uint8_t* buf;
-    AVCodecContext* audio_context, *video_context;
-    AVFormatContext* fmtCtx;
-    queue<AVFrame> video_frame, audio_frame;
-    VideoWorker* video_worker;
     QPushButton *playButton;
-    AVRational rate;
     QString filepath;
     QSlider *playSlider, *soundSlider;
-    QThread *video_thread;
+    QPainter *painter;
 };
 #endif // MAINWINDOW_H
