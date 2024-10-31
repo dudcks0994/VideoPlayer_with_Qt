@@ -14,14 +14,15 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+struct PacketBox;
+
+struct Pool;
+
 class FrameMaker : public QObject
 {
     Q_OBJECT
 public:
     explicit FrameMaker(QObject *parent = nullptr);
-    void SetContext(std::queue<AVPacket *> *q, QMutex* mutex, int *n, AVCodecContext* vctx);
-    std::queue<AVFrame *> *GetFrameQueue();
-    QMutex *GetFrameMutex();
 public slots:
     void Work();
 
@@ -29,11 +30,10 @@ signals:
 
 
 private:
-    std::queue<AVFrame *> *frame_q;
-    std::queue<AVPacket *> *packet_q;
     AVCodecContext* video_ctx;
-    QMutex *packet_mutex, *frame_mutex;
-    int *packet_n, *frame_n;
+    PacketBox* video_packet;
+    Pool* video_pool;
+    int packet_index, frame_index;
 };
 
 #endif // FRAMEMAKER_H

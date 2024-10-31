@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMutex>
 #include <queue>
+#include "demuxer.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -20,23 +21,21 @@ class VideoConverter : public QObject
 {
     Q_OBJECT
 public:
-    explicit VideoConverter(QObject *parent = nullptr);
-    void Set(int w, int h, int format, FrameMaker *f);
+    explicit VideoConverter(QObject *parent = nullptr, uint8_t id = 0);
 
 public slots:
     void Convert();
     void NeedClean();
 
 signals:
-    void ImageSetReady(uchar **p);
+    void ImageSetReady();
 private:
-    std::queue<AVFrame *> *video_frame_q;
-    QMutex* video_frame_mutex;
     SwsContext *sctx;
     uint8_t* buffer;
+    uint8_t thread_id;
+    Pool* video_pool;
     int width, height;
     int wanted_format;
-    int is_sent;
 };
 
 #endif // VIDEOCONVERTER_H

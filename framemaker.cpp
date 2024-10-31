@@ -1,49 +1,34 @@
 #include "framemaker.h"
 #include <windows.h>
 #include <QDebug>
+#include "objectfactory.h"
+#include "demuxer.h"
 
 FrameMaker::FrameMaker(QObject *parent)
     : QObject{parent}
 {
-    frame_q = new std::queue<AVFrame *>;
-    frame_mutex = new QMutex;
-}
-
-void FrameMaker::SetContext(std::queue<AVPacket *> *q, QMutex* mutex, int *n, AVCodecContext* vctx)
-{
-    packet_q = q;
-    packet_mutex = mutex;
-    packet_n = n;
-    video_ctx = vctx;
-}
-
-std::queue<AVFrame* >* FrameMaker::GetFrameQueue()
-{
-    return frame_q;
-}
-
-QMutex* FrameMaker::GetFrameMutex()
-{
-    return frame_mutex;
+    Demuxer *tmp = ObjectFactory::GetDemuxer();
+    video_ctx = tmp->GetVideoContext();
+    video_packet = tmp->GetVideoPacket();
+    video_pool = tmp->GetVideoPool();
+    packet_index = 0;
 }
 
 void FrameMaker::Work()
 {
-    qDebug() << "frame maker start...\n";
+    qDebug() << "frame maker start..." << video_pool;
     AVFrame frame;
     memset(&frame, 0, sizeof(AVFrame));
+    frame_index = 0;
     while (1)
     {
-        if (packet_q->empty() || frame_q->size() > 10)
+        if (!video_packet[packet_index].status)
         {
             qDebug() << "frame maker is resting...";
             Sleep(1000);
             continue;
         }
-        packet_mutex->lock();
-        AVPacket *packet = packet_q->front();
-        packet_q->pop();
-        packet_mutex->unlock();
+        AVPacket *packet = video_packet[packet_index].packet;
         int ret = avcodec_send_packet(video_ctx, packet);
         if (ret != 0)
         {
@@ -63,10 +48,24 @@ void FrameMaker::Work()
                 break;
         }
         AVFrame *tmp = av_frame_clone(&frame);
-        frame_mutex->lock();
-        frame_q->push(tmp);
-        frame_mutex->unlock();
-        av_packet_unref(packet);
-        qDebug() << "pushed frame";
+        for (;;)
+        {
+            if (video_pool[frame_index].status != 0)
+            {
+                // qDebug() << "wait for video_pool have rest place";
+                Sleep(8);
+                continue;
+            }
+            video_pool[frame_index].frame = tmp;
+            video_pool[frame_index].status = 1;
+            qDebug() << "pushed frame" << frame_index << tmp;
+            if (++frame_index == 6)
+                frame_index = 0;
+            break;
+        }
+        // av_packet_unref(video_packet[packet_index].packet);
+        video_packet[packet_index].status = 0;
+        if (++packet_index == 60)
+            packet_index = 0;
     }
 }

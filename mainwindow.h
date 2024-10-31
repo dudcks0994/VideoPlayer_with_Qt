@@ -5,7 +5,7 @@
 #include <queue>
 #include <QTimer>
 #include <QThread>
-#include "videoworker.h"
+#include "demuxer.h"
 #include <QMutex>
 #include <QPushButton>
 #include <QFileDialog>
@@ -32,15 +32,17 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class VideoRenderer;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
     MainWindow(QWidget *parent = nullptr);
+    void SetPixmap(Pool* p,  AVRational rate);
     ~MainWindow();
-    int init_video(Demuxer *demuxer);
-    // int update_image();
+    void SetResolution(int w, int h);
     int width, height;
 
 protected:
@@ -52,14 +54,18 @@ signals:
 
 public slots:
     void onFrameReady(uchar* orig);
+    void Rendering();
 
 private:
-
+    void usleep(int msec);
     Ui::MainWindow *ui;
-    QImage image;
     QPushButton *playButton;
     QString filepath;
     QSlider *playSlider, *soundSlider;
     QPainter *painter;
+    Pool*   video_pool;
+    QImage *image;
+    AVRational rate;
+    int delay_msec;
 };
 #endif // MAINWINDOW_H
