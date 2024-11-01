@@ -1,6 +1,8 @@
 #ifndef VIDEORENDERER_H
 #define VIDEORENDERER_H
 
+
+#define _HAS_STD_BYTE 0
 #include <QObject>
 #include <QPainter>
 #include "datainfo.h"
@@ -13,7 +15,6 @@ extern "C" {
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 }
-
 struct Pool;
 
 class VideoRenderer : public QObject

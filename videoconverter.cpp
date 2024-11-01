@@ -13,6 +13,7 @@ VideoConverter::VideoConverter(QObject *parent, uint8_t id)
     MainWindow* window = ObjectFactory::GetMainWindow();
     res = window->GetResolution();
     thread_id = id;
+    frame_mutex = tmp->GetFrameMutex();
 }
 
 void VideoConverter::NeedClean()
@@ -22,34 +23,36 @@ void VideoConverter::NeedClean()
 void VideoConverter::Convert()
 {
     qDebug() << "VideoConverter start..." << video_pool << " " << res.width << "," << res.height;
-    AVFrame *converted_frame = av_frame_alloc();
     int rest_cnt = 0;
+    int index;
+    int i = 0;
     while(1)
     {
-        if (video_pool[thread_id].status != S_FRAME)
+        frame_mutex->lock();
+        while (i < MAX_POOL)
         {
-            // qDebug() << "resting\n";
-            // qDebug() << "VideoConverter : " << ++rest_cnt;
-            Sleep(20);
-            continue;
+            if (video_pool[i].status == S_FRAME)
+            {
+                index = i;
+                video_pool[i].status = S_CONVERT;
+                break;
+            }
+            ++i;
+            if (i == MAX_POOL)
+            {
+                i = 0;
+                qDebug() << "from converter " << ++rest_cnt;
+                Sleep(15);
+            }
         }
-        if (!sctx)
-        {
-            sctx = sws_getContext(video_pool[thread_id].frame->width, video_pool[thread_id].frame->height, AVPixelFormat(video_pool[thread_id].frame->format), res.width, res.height, AVPixelFormat(AV_PIX_FMT_RGB32), SWS_BICUBIC, 0, 0, 0);
-            int buff_size = av_image_get_buffer_size(AVPixelFormat(AV_PIX_FMT_RGB32), res.width, res.height, 1);
-            buffer = (uint8_t* )av_malloc(buff_size);
-            av_image_fill_arrays(converted_frame->data, converted_frame->linesize, buffer, AVPixelFormat(AV_PIX_FMT_RGB32), res.width, res.height, 1);
-        }
-        int ret = sws_scale(sctx, video_pool[thread_id].frame->data, video_pool[thread_id].frame->linesize, 0, video_pool[thread_id].frame->height, converted_frame->data, converted_frame->linesize);
+        frame_mutex->unlock();
+        int ret = sws_scale(video_pool[index].sctx, video_pool[index].frame->data, video_pool[index].frame->linesize, 0, video_pool[index].frame->height, video_pool[index].converted_frame.data, video_pool[index].converted_frame.linesize);
         if (ret < 0)
         {
-            qDebug() << "error from scaling " << video_pool[thread_id].frame;
+            qDebug() << "error from scaling " << video_pool[index].frame;
             return ;
         }
-        video_pool[thread_id].img = (uchar *)malloc(res.width * res.height * 4);
-        memcpy(video_pool[thread_id].img, converted_frame->data[0], res.width * res.height * 4);
-        av_frame_unref(video_pool[thread_id].frame);
-        video_pool[thread_id].status = S_IMAGE;
-        // qDebug() << thread_id << "th thread : made image : " << video_pool[thread_id].img;
+        av_frame_unref(video_pool[index].frame);
+        video_pool[index].status = S_IMAGE;
     }
 }

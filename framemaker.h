@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMutex>
 #include <queue>
+#include "datainfo.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -33,6 +34,7 @@ private:
     AVCodecContext* video_ctx;
     PacketBox* video_packet;
     Pool* video_pool;
+    Resolution res;
     int packet_index, frame_index;
 };
 

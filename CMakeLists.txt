@@ -57,6 +57,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE C:/ffmpeg/lib/libavutil.dll.a)
 target_link_libraries(${PROJECT_NAME} PRIVATE C:/ffmpeg/lib/libswscale.dll.a)
 target_link_libraries(${PROJECT_NAME} PRIVATE C:/ffmpeg/lib/libswresample.dll.a)
 target_link_libraries(${PROJECT_NAME} PRIVATE kernel32)
+target_link_libraries(${PROJECT_NAME} PRIVATE Mincore.lib)
 target_link_libraries(${PROJECT_NAME} PRIVATE winmm)
 target_include_directories(${PROJECT_NAME} PRIVATE C:/ffmpeg/include/)
 

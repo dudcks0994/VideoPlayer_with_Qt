@@ -13,6 +13,7 @@ FrameMaker::FrameMaker(QObject *parent)
     video_packet = tmp->GetVideoPacket();
     video_pool = tmp->GetVideoPool();
     packet_index = 0;
+    res = window->GetResolution();
 }
 
 void FrameMaker::Work()
@@ -53,20 +54,27 @@ void FrameMaker::Work()
         {
             if (video_pool[frame_index].status != S_EMPTY)
             {
-                // qDebug() << "frameMaker : " << ++rest_cnt;
-                Sleep(10);
+                qDebug() << "from frame maker " << ++rest_cnt;
+                Sleep(20);
                 continue;
             }
             video_pool[frame_index].frame = tmp;
+            if (!video_pool[frame_index].sctx)
+            {
+                video_pool[frame_index].sctx = sws_getContext(video_pool[frame_index].frame->width, video_pool[frame_index].frame->height, AVPixelFormat(video_pool[frame_index].frame->format), res.width, res.height, AVPixelFormat(AV_PIX_FMT_RGB32), SWS_BICUBIC, 0, 0, 0);
+                video_pool[frame_index].buff_size = av_image_get_buffer_size(AVPixelFormat(AV_PIX_FMT_RGB32), res.width, res.height, 1);
+                video_pool[frame_index].buffer = (uint8_t* )av_malloc(video_pool[frame_index].buff_size);
+                av_image_fill_arrays(video_pool[frame_index].converted_frame.data, video_pool[frame_index].converted_frame.linesize, video_pool[frame_index].buffer, AVPixelFormat(AV_PIX_FMT_RGB32), res.width, res.height, 1);
+            }
             video_pool[frame_index].status = S_FRAME;
-            if (++frame_index == 6)
+            if (++frame_index == MAX_POOL)
                 frame_index = 0;
             break;
         }
         av_frame_unref(&frame);
         av_packet_unref(video_packet[packet_index].packet);
         video_packet[packet_index].status = 0;
-        if (++packet_index == 30)
+        if (++packet_index == 60)
             packet_index = 0;
     }
 }

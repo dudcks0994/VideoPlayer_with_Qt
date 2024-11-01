@@ -7,6 +7,8 @@
 #define S_CONVERT 2
 #define S_IMAGE 3
 
+#define MAX_POOL 10
+
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
@@ -20,6 +22,9 @@ struct Pool{
     uint8_t status;
     AVFrame* frame;
     AVFrame  converted_frame;
+    SwsContext *sctx;
+    int buff_size;
+    uint8_t* buffer;
     uchar* img;
 };
 

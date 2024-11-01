@@ -48,9 +48,9 @@ private:
     Resolution res;
     AVRational rate;
     StreamIndex stream_idx;
-    QThread *frameMaker_thread, *videoConverter_thread[6], *videoRenderer_thread;
+    QThread *frameMaker_thread, *videoConverter_thread[12], *videoRenderer_thread;
     QMutex *frame_mutex;
-    VideoConverter *videoConverter[6];
+    VideoConverter *videoConverter[12];
     VideoRenderer *videoRenderer;
     FrameMaker *frameMaker;
     ImageMaker *imageMaker;

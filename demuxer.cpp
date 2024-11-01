@@ -15,7 +15,7 @@ Demuxer::Demuxer(QObject *parent, const QString& file)
     fmtctx = window->GetFormatContext();
     stream_idx = window->GetStreamIndex();
     video_packet = (PacketBox*)calloc(200, sizeof(PacketBox));
-    video_pool = (Pool *)calloc(6, sizeof(Pool));
+    video_pool = (Pool *)calloc(MAX_POOL, sizeof(Pool));
     frame_mutex = new QMutex;
 }
 
@@ -50,7 +50,7 @@ void Demuxer::Demuxing()
         connect(frameMaker_thread, SIGNAL(started()), frameMaker, SLOT(Work()));
         frameMaker->moveToThread(frameMaker_thread);
         frameMaker_thread->start();
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 4; ++i)
         {
             videoConverter_thread[i] = new QThread();
             videoConverter[i] = new VideoConverter(0, i);
@@ -87,7 +87,7 @@ void Demuxer::Demuxing()
                 video_packet[video_packet_index].packet = tmp;
                 video_packet[video_packet_index].status = 1;
                 // qDebug() << "pushed packet : " << video_packet_index << ", duration : " << tmp->duration;
-                if (++video_packet_index == 30)
+                if (++video_packet_index == 60)
                     video_packet_index = 0;
                 break;
             }

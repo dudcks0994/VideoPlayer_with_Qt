@@ -36,6 +36,7 @@ private:
     Pool* video_pool;
     Resolution res;
     int wanted_format;
+    QMutex* frame_mutex;
 };
 
 #endif // VIDEOCONVERTER_H
