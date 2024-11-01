@@ -3,27 +3,37 @@
 
 #include <QObject>
 #include <QPainter>
+#include "datainfo.h"
+
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavutil/avutil.h>
+#include <libavutil/imgutils.h>
+#include <libswscale/swscale.h>
+#include <libswresample/swresample.h>
+}
+
+struct Pool;
 
 class VideoRenderer : public QObject
 {
     Q_OBJECT
 public:
     explicit VideoRenderer(QObject *parent = nullptr);
-    void SetPainter(QPainter *p, int w, int h);
-    void Drawing();
 
 signals:
-    void DoneImageSet();
+    void OnImageReady();
 public slots:
-    void ReceiveImageSet();
+    void Rendering();
 
 
 private:
-    int is_ready;
-    int cur_set;
-    QPainter *painter;
-    int delay;
-    int width, height;
+    void usleep(int msec);
+    Pool* video_pool;
+    QImage* image;
+    int delay_msec;
+    Resolution res;
 };
 
 #endif // VIDEORENDERER_H

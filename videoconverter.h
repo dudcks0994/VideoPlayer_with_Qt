@@ -34,7 +34,7 @@ private:
     uint8_t* buffer;
     uint8_t thread_id;
     Pool* video_pool;
-    int width, height;
+    Resolution res;
     int wanted_format;
 };
 

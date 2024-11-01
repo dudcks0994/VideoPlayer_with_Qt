@@ -1,10 +1,11 @@
 #ifndef DEMUXER_H
 #define DEMUXER_H
-
+#include "mainwindow.h"
 #include <QObject>
 #include <QMutex>
 #include <queue>
 #include <QThread>
+#include "datainfo.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -18,17 +19,13 @@ extern "C" {
 class FrameMaker;
 class VideoConverter;
 class ImageMaker;
+class VideoRenderer;
 
 struct PacketBox{
     uchar status;
     AVPacket* packet;
 };
 
-struct Pool{
-    uint8_t status;
-    AVFrame* frame;
-    uchar* img;
-};
 
 
 class Demuxer : public QObject
@@ -36,11 +33,9 @@ class Demuxer : public QObject
     Q_OBJECT
 public:
     explicit Demuxer(QObject *parent = nullptr, const QString &filepath = "");
-    void SetProperty(int w, int h, AVRational rate_info);
-    AVCodecContext* GetVideoContext();
-    AVCodecContext* GetAudioContext();
     PacketBox* GetVideoPacket();
     Pool* GetVideoPool();
+    QMutex* GetFrameMutex();
 signals:
     void Error();
 
@@ -48,18 +43,15 @@ public slots:
     void Demuxing();
 private:
     void clean();
-    int initVideo(const QString &file);
-    AVFormatContext *fmtctx;
-    AVStream *video_stream, *audio_stream;
-    AVCodecContext *video_context, *audio_context;
-    int *video_packet_n, *audio_packet_n;
-    QMutex* video_packet_mutex, *audio_packet_mutex;
-    int vidx, aidx;
     int need_reset;
-    int width, height;
+    AVFormatContext* fmtctx;
+    Resolution res;
     AVRational rate;
-    QThread *frameMaker_thread, *videoConverter_thread[6], *imageMaker_thread;
+    StreamIndex stream_idx;
+    QThread *frameMaker_thread, *videoConverter_thread[6], *videoRenderer_thread;
+    QMutex *frame_mutex;
     VideoConverter *videoConverter[6];
+    VideoRenderer *videoRenderer;
     FrameMaker *frameMaker;
     ImageMaker *imageMaker;
     PacketBox* video_packet;

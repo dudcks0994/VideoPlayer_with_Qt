@@ -8,7 +8,8 @@ FrameMaker::FrameMaker(QObject *parent)
     : QObject{parent}
 {
     Demuxer *tmp = ObjectFactory::GetDemuxer();
-    video_ctx = tmp->GetVideoContext();
+    MainWindow *window = ObjectFactory::GetMainWindow();
+    video_ctx = window->GetVctx();
     video_packet = tmp->GetVideoPacket();
     video_pool = tmp->GetVideoPool();
     packet_index = 0;
@@ -20,12 +21,12 @@ void FrameMaker::Work()
     AVFrame frame;
     memset(&frame, 0, sizeof(AVFrame));
     frame_index = 0;
+    int rest_cnt = 0;
     while (1)
     {
         if (!video_packet[packet_index].status)
         {
-            qDebug() << "frame maker is resting...";
-            Sleep(1000);
+            Sleep(20);
             continue;
         }
         AVPacket *packet = video_packet[packet_index].packet;
@@ -50,22 +51,22 @@ void FrameMaker::Work()
         AVFrame *tmp = av_frame_clone(&frame);
         for (;;)
         {
-            if (video_pool[frame_index].status != 0)
+            if (video_pool[frame_index].status != S_EMPTY)
             {
-                // qDebug() << "wait for video_pool have rest place";
-                Sleep(8);
+                // qDebug() << "frameMaker : " << ++rest_cnt;
+                Sleep(10);
                 continue;
             }
             video_pool[frame_index].frame = tmp;
-            video_pool[frame_index].status = 1;
-            qDebug() << "pushed frame" << frame_index << tmp;
+            video_pool[frame_index].status = S_FRAME;
             if (++frame_index == 6)
                 frame_index = 0;
             break;
         }
-        // av_packet_unref(video_packet[packet_index].packet);
+        av_frame_unref(&frame);
+        av_packet_unref(video_packet[packet_index].packet);
         video_packet[packet_index].status = 0;
-        if (++packet_index == 60)
+        if (++packet_index == 30)
             packet_index = 0;
     }
 }

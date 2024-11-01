@@ -5,13 +5,13 @@
 #include <queue>
 #include <QTimer>
 #include <QThread>
-#include "demuxer.h"
 #include <QMutex>
 #include <QPushButton>
 #include <QFileDialog>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QSlider>
+#include "datainfo.h"
 
 class Demuxer;
 
@@ -40,10 +40,16 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    void SetPixmap(Pool* p,  AVRational rate);
     ~MainWindow();
-    void SetResolution(int w, int h);
-    int width, height;
+    QImage* GetImage();
+    AVFormatContext *GetFormatContext();
+    AVCodecContext *GetVctx();
+    AVCodecContext *GetActx();
+    Resolution GetResolution();
+    AVRational GetFrameRate();
+    StreamIndex GetStreamIndex();
+    PlayStatus *GetPlayStatus();
+    void Play();
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -53,19 +59,24 @@ signals:
     void startDemuxing();
 
 public slots:
-    void onFrameReady(uchar* orig);
-    void Rendering();
+    void onFrameReady();
 
 private:
-    void usleep(int msec);
     Ui::MainWindow *ui;
     QPushButton *playButton;
-    QString filepath;
+    QString file;
     QSlider *playSlider, *soundSlider;
     QPainter *painter;
-    Pool*   video_pool;
     QImage *image;
+    QThread *demuxer_thread;
+    Demuxer* demuxer;
+    int init_video();
+    Resolution res;
+    AVFormatContext *fmtctx;
+    AVStream *video_stream, *audio_stream;
+    AVCodecContext *video_context, *audio_context;
     AVRational rate;
-    int delay_msec;
+    StreamIndex stream_idx;
+    PlayStatus* status;
 };
 #endif // MAINWINDOW_H
