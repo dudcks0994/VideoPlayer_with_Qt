@@ -27,11 +27,13 @@ void FrameMaker::Work()
     {
         if (!video_packet[packet_index].status)
         {
+            // qDebug() << "wait for packet index " << packet_index;
             Sleep(20);
             continue;
         }
         AVPacket *packet = video_packet[packet_index].packet;
         int ret = avcodec_send_packet(video_ctx, packet);
+        // qDebug() << "send packet returned " << ret;
         if (ret != 0)
         {
             if (ret == AVERROR(EAGAIN))
@@ -41,11 +43,18 @@ void FrameMaker::Work()
             else
                 return ;
         }
+        av_packet_unref(video_packet[packet_index].packet);
+        video_packet[packet_index].status = 0;
         ret = avcodec_receive_frame(video_ctx, &frame);
         if (ret != 0)
         {
+            // qDebug() << "receive frame returned " << ret;
             if (ret == AVERROR(EAGAIN))
+            {
+                if (++packet_index == 60)
+                    packet_index = 0;
                 continue;
+            }
             if (ret == AVERROR_EOF)
                 break;
         }
@@ -54,7 +63,7 @@ void FrameMaker::Work()
         {
             if (video_pool[frame_index].status != S_EMPTY)
             {
-                qDebug() << "from frame maker " << ++rest_cnt;
+                // qDebug() << "from frame maker " << ++rest_cnt;
                 Sleep(20);
                 continue;
             }
@@ -67,13 +76,12 @@ void FrameMaker::Work()
                 av_image_fill_arrays(video_pool[frame_index].converted_frame.data, video_pool[frame_index].converted_frame.linesize, video_pool[frame_index].buffer, AVPixelFormat(AV_PIX_FMT_RGB32), res.width, res.height, 1);
             }
             video_pool[frame_index].status = S_FRAME;
+            // qDebug() << "pushed frame";
             if (++frame_index == MAX_POOL)
                 frame_index = 0;
             break;
         }
         av_frame_unref(&frame);
-        av_packet_unref(video_packet[packet_index].packet);
-        video_packet[packet_index].status = 0;
         if (++packet_index == 60)
             packet_index = 0;
     }

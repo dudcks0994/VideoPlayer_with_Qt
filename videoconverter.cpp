@@ -41,7 +41,7 @@ void VideoConverter::Convert()
             if (i == MAX_POOL)
             {
                 i = 0;
-                qDebug() << "from converter " << ++rest_cnt;
+                // qDebug() << "from converter " << ++rest_cnt;
                 Sleep(15);
             }
         }
@@ -54,5 +54,6 @@ void VideoConverter::Convert()
         }
         av_frame_unref(video_pool[index].frame);
         video_pool[index].status = S_IMAGE;
+        // qDebug() << "made image from converter";
     }
 }
