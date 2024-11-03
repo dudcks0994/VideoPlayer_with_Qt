@@ -1,9 +1,5 @@
 #include "objectfactory.h"
 #include "demuxer.h"
-#include "framemaker.h"
-#include "imagemaker.h"
-#include "videoconverter.h"
-#include "videorenderer.h"
 
 Demuxer* ObjectFactory::demuxer = nullptr;
 MainWindow* ObjectFactory::mainWindow = nullptr;

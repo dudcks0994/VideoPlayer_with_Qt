@@ -6,6 +6,8 @@
 #include "objectfactory.h"
 #include "framemaker.h"
 #include "videorenderer.h"
+#include "audiomaker.h"
+#include "soundplayer.h"
 
 
 Demuxer::Demuxer(QObject *parent, const QString& file)
@@ -15,7 +17,9 @@ Demuxer::Demuxer(QObject *parent, const QString& file)
     fmtctx = window->GetFormatContext();
     stream_idx = window->GetStreamIndex();
     video_packet = (PacketBox*)calloc(200, sizeof(PacketBox));
+    audio_packet = (PacketBox*)calloc(200, sizeof(PacketBox));
     video_pool = (Pool *)calloc(MAX_POOL, sizeof(Pool));
+    audio_pool = (AudioPool *)calloc(MAX_POOL, sizeof(AudioPool));
     frame_mutex = new QMutex;
 }
 
@@ -27,6 +31,16 @@ PacketBox* Demuxer::GetVideoPacket()
 Pool* Demuxer::GetVideoPool()
 {
     return (video_pool);
+}
+
+AudioPool* Demuxer::GetAudioPool()
+{
+    return (audio_pool);
+}
+
+PacketBox* Demuxer::GetaudioPacket()
+{
+    return (audio_packet);
 }
 
 QMutex* Demuxer::GetFrameMutex()
@@ -43,6 +57,7 @@ void Demuxer::Demuxing()
     memset(&packet, 0, sizeof(packet));
     packet_index = 0;
     int video_packet_index = 0;
+    int audio_packet_index = 0;
     if (stream_idx.vidx >=0)
     {
         frameMaker_thread = new QThread(this);
@@ -67,12 +82,24 @@ void Demuxer::Demuxing()
         videoRenderer_thread->start();
     }
     if (stream_idx.aidx >= 0)
-        ;
+    {
+        audioMaker_thread = new QThread(this);
+        audioMaker = new AudioMaker;
+        connect(audioMaker_thread, SIGNAL(started()), audioMaker, SLOT(Convert()));
+        audioMaker->moveToThread(audioMaker_thread);
+        audioMaker_thread->start();
+        soundPlayer_thread = new QThread(this);
+        soundPlayer = new SoundPlayer;
+        soundPlayer->moveToThread(soundPlayer_thread);
+        connect(soundPlayer_thread, SIGNAL(started()), soundPlayer, SLOT(Play()));
+        soundPlayer_thread->start();
+    }
     while (1)
     {
         int ret = av_read_frame(fmtctx, &packet);
         if (ret != 0)
-            break;
+            return ;
+        AVPacket *tmp = av_packet_clone(&packet);
         if (packet.stream_index == stream_idx.vidx)
         {
             for (;;)
@@ -83,10 +110,9 @@ void Demuxer::Demuxing()
                     // qDebug() << "resting demuxer index : " << video_packet_index;
                     continue;
                 }
-                AVPacket *tmp = av_packet_clone(&packet);
                 video_packet[video_packet_index].packet = tmp;
                 video_packet[video_packet_index].status = 1;
-                // qDebug() << "pushed packet : " << video_packet_index << ", duration : " << tmp->duration;
+                // qDebug() << "pushed video packet : " << video_packet_index << ", duration : " << tmp->duration;
                 if (++video_packet_index == 60)
                     video_packet_index = 0;
                 break;
@@ -94,9 +120,22 @@ void Demuxer::Demuxing()
         }
         else if (packet.stream_index == stream_idx.aidx)
         {
-            // AVPacket *tmp = av_packet_clone(&packet);
-
-            // // 나중에 추가
+            for(;;)
+            {
+                if (audio_packet[audio_packet_index].status != 0)
+                {
+                    Sleep(8);
+                    // qDebug() << "wait for audio packet index " << audio_packet_index;
+                    continue;
+                }
+                audio_packet[audio_packet_index].packet = tmp;
+                audio_packet[audio_packet_index].status = 1;
+                // qDebug() << "pushed audio packet : " << audio_packet_index << ", duration : " << tmp->duration;
+                if (++audio_packet_index == 60)
+                    audio_packet_index = 0;
+                break;
+            }
+            // 나중에 추가
         }
         ++packet_index;
         av_packet_unref(&packet);

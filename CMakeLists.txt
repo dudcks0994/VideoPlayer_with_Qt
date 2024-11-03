@@ -28,9 +28,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         framemaker.h framemaker.cpp
         videoconverter.h videoconverter.cpp
         videorenderer.h videorenderer.cpp
-        imagemaker.h imagemaker.cpp
         objectfactory.h objectfactory.cpp
         datainfo.h
+        audiomaker.h audiomaker.cpp
+        soundplayer.h soundplayer.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET VideoPlayer_with_Qt APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

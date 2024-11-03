@@ -1,6 +1,7 @@
 #ifndef DATAINFO_H
 #define DATAINFO_H
 
+#include <windows.h>
 #include <QMainWindow>
 #define S_EMPTY 0
 #define S_FRAME 1
@@ -8,6 +9,7 @@
 #define S_IMAGE 3
 
 #define MAX_POOL 10
+#define MAX_HDR 10
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -18,6 +20,11 @@ extern "C" {
 #include <libswresample/swresample.h>
 }
 
+struct PacketBox{
+    uchar status;
+    AVPacket* packet;
+};
+
 struct Pool{
     uint8_t status;
     AVFrame* frame;
@@ -26,6 +33,10 @@ struct Pool{
     int buff_size;
     uint8_t* buffer;
     uchar* img;
+};
+struct AudioPool{
+    int status;
+    WAVEHDR hdr;
 };
 
 struct Resolution{

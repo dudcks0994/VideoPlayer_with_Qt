@@ -5,20 +5,7 @@
 #include "demuxer.h"
 #include <realtimeapiset.h>
 
-VideoRenderer::VideoRenderer(QObject *parent)
-    : QObject{parent}
-{
-    Demuxer* tmp = ObjectFactory::GetDemuxer();
-    MainWindow *window = ObjectFactory::GetMainWindow();
-    AVRational rate = window->GetFrameRate();
-    qDebug() << rate.num << " / " << rate.den;
-    delay_msec = 1000.0 * 1.0 / (rate.num / rate.den);;
-    video_pool = tmp->GetVideoPool();
-    image = window->GetImage();
-    res = window->GetResolution();
-}
-
-void uusleep(int msec, LARGE_INTEGER frequency)
+static void uusleep(int msec, LARGE_INTEGER frequency)
 {
     LARGE_INTEGER start, cur;
     int gap;
@@ -48,6 +35,19 @@ void uusleep(int msec, LARGE_INTEGER frequency)
         gap = (cur.QuadPart - start.QuadPart) * 1000.0 / frequency.QuadPart;
     }
     // qDebug() << "end for sleep";
+};
+
+VideoRenderer::VideoRenderer(QObject *parent)
+    : QObject{parent}
+{
+    Demuxer* tmp = ObjectFactory::GetDemuxer();
+    MainWindow *window = ObjectFactory::GetMainWindow();
+    AVRational rate = window->GetFrameRate();
+    qDebug() << rate.num << " / " << rate.den;
+    delay_msec = 1000.0 * 1.0 / (rate.num / rate.den);;
+    video_pool = tmp->GetVideoPool();
+    image = window->GetImage();
+    res = window->GetResolution();
 }
 
 void VideoRenderer::usleep(int msec)
@@ -91,7 +91,6 @@ void VideoRenderer::Rendering()
     {
         if (video_pool[index].status != S_IMAGE)
         {
-            qDebug() << "waiting for image..";
             Sleep(8);
             continue;
         }

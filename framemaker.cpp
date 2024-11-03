@@ -35,14 +35,7 @@ void FrameMaker::Work()
         int ret = avcodec_send_packet(video_ctx, packet);
         // qDebug() << "send packet returned " << ret;
         if (ret != 0)
-        {
-            if (ret == AVERROR(EAGAIN))
-                continue;
-            if (ret == AVERROR_EOF)
-                break;
-            else
-                return ;
-        }
+                return ; // 할거다끝남
         av_packet_unref(video_packet[packet_index].packet);
         video_packet[packet_index].status = 0;
         ret = avcodec_receive_frame(video_ctx, &frame);

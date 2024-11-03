@@ -18,13 +18,9 @@ extern "C" {
 
 class FrameMaker;
 class VideoConverter;
-class ImageMaker;
 class VideoRenderer;
-
-struct PacketBox{
-    uchar status;
-    AVPacket* packet;
-};
+class AudioMaker;
+class SoundPlayer;
 
 
 
@@ -34,7 +30,9 @@ class Demuxer : public QObject
 public:
     explicit Demuxer(QObject *parent = nullptr, const QString &filepath = "");
     PacketBox* GetVideoPacket();
+    PacketBox* GetaudioPacket();
     Pool* GetVideoPool();
+    AudioPool* GetAudioPool();
     QMutex* GetFrameMutex();
 signals:
     void Error();
@@ -53,9 +51,12 @@ private:
     VideoConverter *videoConverter[12];
     VideoRenderer *videoRenderer;
     FrameMaker *frameMaker;
-    ImageMaker *imageMaker;
-    PacketBox* video_packet;
+    QThread *audioMaker_thread, *soundPlayer_thread;
+    AudioMaker *audioMaker;
+    SoundPlayer *soundPlayer;
+    PacketBox* video_packet, *audio_packet;
     Pool* video_pool;
+    AudioPool* audio_pool;
     int packet_index;
 };
 
